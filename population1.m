@@ -1,4 +1,22 @@
-% program to run single bubbles
+%% Simulation of single bubbles
+% This script can also be used to simulate microbubble populations when properly configured.
+% This script has been tailed to single bubble simulations.
+% This script is shared for manuscript "Explaining the correlation between Subharmonic Amplitude ..."
+% This script can be configured to simulate multiple cases, mainly through
+% -------------------------------------------------------------------------
+% bubble_model            = 'EEM';
+% rads = [1:0.5:3,4,5] * 1e-6;  %for multiple single bubbles [1:0.5:3,4,5]  
+% povs = [0] * 1e3;             %0-25KPa [0,10,25]
+% frqs = [2.5] * 1e6;           %1-10MHz [1:0.5:6]
+% pacs = [350] * 1e3;           %10-800kPa [10:10:50,100:50:800]
+% pulse_negative = 1;           %only used for non-modulated pulses
+% to_solve_bubble_resonance:    %1: use small-signal simulation to estimate
+%                                   the resonance frequencies
+% -------------------------------------------------------------------------
+% Please contact ychen.zju@outlook.com or yao.chen1@ge.com for discussion.
+% Copyright reserved by Yao Chen. 2024-07-01
+
+%% environmental setting
 format short g
 format compact
 % close all;
@@ -97,10 +115,10 @@ lognorm_std             = 0.50;
 %%                                 the resonance frequencies
 %% =====================================================================%%
 bubble_model            = 'EEM';
-rads = [1:0.5:3,4,5] * 1e-6; %for single bubble simulation
-povs = [0] * 1e3; %0-25KPa
-frqs = [2.5] * 1e6;
-pacs = [350] * 1e3;
+rads = [1:0.5:3,4,5] * 1e-6; %for multiple single bubbles [1:0.5:3,4,5]  
+povs = [0] * 1e3; %0-25KPa [0,10,25]
+frqs = [2.5] * 1e6; %1-10MHz [1:0.5:6]
+pacs = [350] * 1e3; %10-800kPa [10:10:50,100:50:800]
 
 pulse_negative        = 1; %only used for non-modulated pulses
 pulse_modulated       = 0; %when using modulated pulse, the pulse_negative should be set to 0
@@ -117,21 +135,22 @@ to_solve_bubble_resonance = 0; %enable or disable the perturbation-simulation
 
 
 %% Simulation Settings
+%% Combined settings with microbubble populations
+
 % seed = 1; rng(seed); GeneratedSeeds = randi(1000,2,50); %Monte-Carlo simulation
 % GeneratedSeeds = GeneratedSeeds(:,21:30);
 % GeneratedSeeds = [1999 * ones(1,10); (1122:100:2022)]; %seeds for random locations
 % GeneratedSeeds = [(1999:100:2899); 1122 * ones(1,10)]; %seeds for random radius
 GeneratedSeeds = [1999; 1122]; %fixed seed for bubble location and radius
 
-
 for testcase = 1:size(GeneratedSeeds,2)
     Rseed = GeneratedSeeds(1,testcase); %seed for random bubble radius
     Lseed = GeneratedSeeds(2,testcase); %seed for random bubble locations
     
-    %% bubble definition
+    %% single bubble definition
     single_bubble_simu      = 1;
     if single_bubble_simu
-        %% following parameters are for single bubble simulation
+        %% following parameters for single bubble simulation
         Probe2Vessel_Depth      = 4e-2;     % m;
         Vessel2ROI_Depth        = 0e-3;     % m;
         ROI2Bottom_Depth        = 3e-3;     %m
@@ -151,7 +170,7 @@ for testcase = 1:size(GeneratedSeeds,2)
             1/probe_fs);
         ATTEN = ones(TotalNodes,1) * water_attn(1:100)';
     else
-        
+        %% following parameters for bubble populations
         %% ROI relevant parameters
         Probe2Vessel_Depth      = 4e-2;     % m;
         Vessel2ROI_Depth        = 3e-3;     % m;
@@ -294,7 +313,8 @@ for testcase = 1:size(GeneratedSeeds,2)
         end
     end
     
-    % %% assume all bubbles to be 3um
+    %% Simulating monodisperse populations
+    %% assume all bubbles to be 3um
     % Rs = ones(size(Rs)) * 3e-6;
     
     %% Calculate the initial radius under hydrostatic pressure

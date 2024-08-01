@@ -19,7 +19,7 @@ mrkers = mrkers(1:total_number);
 widths = widths(1:total_number);
 
 %% 显示仿真获得的微泡共振频率
-model_name = 'Marmottant';
+model_name = 'EEM';
 datafile = ['population1_bubble_resonance_',model_name,'.mat'];
 load(datafile);
 

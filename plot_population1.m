@@ -72,10 +72,15 @@ for pov_ndx = 1:length(povs)
                 
                 % 谐波幅度的计算
                 fr_wd = 0.25e6; %Hz
-                xsh(rad_ndx,pov_ndx,frq_ndx,pac_ndx) = mean(resp(freq<Frq*0.5+fr_wd & freq>=Frq*0.5-fr_wd));
-                xfd(rad_ndx,pov_ndx,frq_ndx,pac_ndx) = mean(resp(freq<Frq*1.0+fr_wd & freq>=Frq*1.0-fr_wd));
-                xuh(rad_ndx,pov_ndx,frq_ndx,pac_ndx) = mean(resp(freq<Frq*1.5+fr_wd & freq>=Frq*1.5-fr_wd));
-                xhm(rad_ndx,pov_ndx,frq_ndx,pac_ndx) = mean(resp(freq<Frq*2.0+fr_wd & freq>=Frq*2.0-fr_wd));
+%                 xsh(rad_ndx,pov_ndx,frq_ndx,pac_ndx) = mean(resp(freq<Frq*0.5+fr_wd & freq>=Frq*0.5-fr_wd));
+%                 xfd(rad_ndx,pov_ndx,frq_ndx,pac_ndx) = mean(resp(freq<Frq*1.0+fr_wd & freq>=Frq*1.0-fr_wd));
+%                 xuh(rad_ndx,pov_ndx,frq_ndx,pac_ndx) = mean(resp(freq<Frq*1.5+fr_wd & freq>=Frq*1.5-fr_wd));
+%                 xhm(rad_ndx,pov_ndx,frq_ndx,pac_ndx) = mean(resp(freq<Frq*2.0+fr_wd & freq>=Frq*2.0-fr_wd));
+                xsh(rad_ndx,pov_ndx,frq_ndx,pac_ndx) = interp1(freq(freq<Frq*0.5+fr_wd & freq>=Frq*0.5-fr_wd),resp(freq<Frq*0.5+fr_wd & freq>=Frq*0.5-fr_wd),Frq*0.5);
+                xfd(rad_ndx,pov_ndx,frq_ndx,pac_ndx) = interp1(freq(freq<Frq*1.0+fr_wd & freq>=Frq*1.0-fr_wd),resp(freq<Frq*1.0+fr_wd & freq>=Frq*1.0-fr_wd),Frq*1.0);
+                xuh(rad_ndx,pov_ndx,frq_ndx,pac_ndx) = interp1(freq(freq<Frq*1.5+fr_wd & freq>=Frq*1.5-fr_wd),resp(freq<Frq*1.5+fr_wd & freq>=Frq*1.5-fr_wd),Frq*1.5);
+                xhm(rad_ndx,pov_ndx,frq_ndx,pac_ndx) = interp1(freq(freq<Frq*2.0+fr_wd & freq>=Frq*2.0-fr_wd),resp(freq<Frq*2.0+fr_wd & freq>=Frq*2.0-fr_wd),Frq*2.0);
+
                 
                 %% 显示不同大小微泡的振动、回声及其频谱
                 if length(rads)>=1 && length(povs)==1 && length(frqs)==1 && length(pacs)==1
@@ -339,7 +344,7 @@ end
 
 %% 显示不同大小微泡的次谐波幅度-环境压力的关系
 if length(rads)>=1 && length(povs)>1 && length(frqs)==1 && length(pacs)==1
-    fig10050=figure(10050); fig10050.Position = [80 540 560 480];
+    fig10050=figure(10050); fig10050.Position = [50 500 560 480];
     X = povs(:) / 1e3; Y = xsh(:,:,frq_ndx,pac_ndx)';
     plt=plot(X,Y,'Marker','+'); grid on; hold on;
     for k=1:length(plt)
@@ -356,6 +361,7 @@ if length(rads)>=1 && length(povs)>1 && length(frqs)==1 && length(pacs)==1
             ['Model = ', bubble_model],...
             ['Pulse Magnitude = ',num2str(Pac/1e3),' kPa, ', 'Pulse Frequency = ',num2str(Frq/1e6),' MHz']});
     end
+    
 end
 
 %% 显示不同大小微泡的次谐波幅度-脉冲强度的关系
@@ -515,4 +521,82 @@ if length(rads)==1 && length(povs)>1 && length(frqs)>1 && length(pacs)==1
             ['Reference Rosonance Frequency f_{r} = ',num2str(Finit(rad_ndx,1)/1e6,'%2.2f'),' MHz']});
     end
     xlim([povs(1)/1e3,povs(end)/1e3]);
+end
+
+%% 显示不同谐波与环境压力的关系
+if length(rads)>=1 && length(povs)>1 && length(frqs)==1 && length(pacs)==1
+    fig10130=figure(10130); fig10130.Position = [100 100 1000 800];
+    subplot(2,2,1)
+    X = povs(:) / 1e3; Y = xsh(:,:,frq_ndx,pac_ndx)';
+    plt=plot(X,Y,'Marker','+'); grid on; hold on;
+    for k=1:length(plt)
+        plt(k).Color=colors{k}; plt(k).LineStyle=styles{k}; plt(k).Marker=mrkers{k}; plt(k).LineWidth=widths{k};
+    end
+    legend(compose('R0 = %2.1f \x03BCm, \x0394SH = %2.2f dB',rads(:)*1e6, (Y(end,:)-Y(1,:))'),'Location','best');
+    xlabel('Overpressure (kPa)'); ylabel('Amplitude (dB)');
+    if pulse_negative==1
+        title({'Subharmonic Amplitude vs. Ambient Overpressure',...
+            ['Model = ', bubble_model],...
+            ['Pulse Magnitude = -',num2str(Pac/1e3),' kPa, ', 'Pulse Frequency = ',num2str(Frq/1e6),' MHz']});
+    else
+        title({'Subharmonic Amplitude vs. Ambient Overpressure',...
+            ['Model = ', bubble_model],...
+            ['Pulse Magnitude = ',num2str(Pac/1e3),' kPa, ', 'Pulse Frequency = ',num2str(Frq/1e6),' MHz']});
+    end
+
+    subplot(2,2,2)
+    X = povs(:) / 1e3; Y = xfd(:,:,frq_ndx,pac_ndx)';
+    plt=plot(X,Y,'Marker','+'); grid on; hold on;
+    for k=1:length(plt)
+        plt(k).Color=colors{k}; plt(k).LineStyle=styles{k}; plt(k).Marker=mrkers{k}; plt(k).LineWidth=widths{k};
+    end
+    legend(compose('R0 = %2.1f \x03BCm, \x0394SH = %2.2f dB',rads(:)*1e6, (Y(end,:)-Y(1,:))'),'Location','best');
+    xlabel('Overpressure (kPa)'); ylabel('Amplitude (dB)');
+    if pulse_negative==1
+        title({'Fundamental Amplitude vs. Ambient Overpressure',...
+            ['Model = ', bubble_model],...
+            ['Pulse Magnitude = -',num2str(Pac/1e3),' kPa, ', 'Pulse Frequency = ',num2str(Frq/1e6),' MHz']});
+    else
+        title({'Fundamental Amplitude vs. Ambient Overpressure',...
+            ['Model = ', bubble_model],...
+            ['Pulse Magnitude = ',num2str(Pac/1e3),' kPa, ', 'Pulse Frequency = ',num2str(Frq/1e6),' MHz']});
+    end
+    
+    subplot(2,2,3)
+    X = povs(:) / 1e3; Y = xuh(:,:,frq_ndx,pac_ndx)';
+    plt=plot(X,Y,'Marker','+'); grid on; hold on;
+    for k=1:length(plt)
+        plt(k).Color=colors{k}; plt(k).LineStyle=styles{k}; plt(k).Marker=mrkers{k}; plt(k).LineWidth=widths{k};
+    end
+    legend(compose('R0 = %2.1f \x03BCm, \x0394SH = %2.2f dB',rads(:)*1e6, (Y(end,:)-Y(1,:))'),'Location','best');
+    xlabel('Overpressure (kPa)'); ylabel('Amplitude (dB)');
+    if pulse_negative==1
+        title({'Ultraharmonic Amplitude vs. Ambient Overpressure',...
+            ['Model = ', bubble_model],...
+            ['Pulse Magnitude = -',num2str(Pac/1e3),' kPa, ', 'Pulse Frequency = ',num2str(Frq/1e6),' MHz']});
+    else
+        title({'Ultraharmonic Amplitude vs. Ambient Overpressure',...
+            ['Model = ', bubble_model],...
+            ['Pulse Magnitude = ',num2str(Pac/1e3),' kPa, ', 'Pulse Frequency = ',num2str(Frq/1e6),' MHz']});
+    end
+    
+    subplot(2,2,4)
+    X = povs(:) / 1e3; Y = xhm(:,:,frq_ndx,pac_ndx)';
+    plt=plot(X,Y,'Marker','+'); grid on; hold on;
+    for k=1:length(plt)
+        plt(k).Color=colors{k}; plt(k).LineStyle=styles{k}; plt(k).Marker=mrkers{k}; plt(k).LineWidth=widths{k};
+    end
+    legend(compose('R0 = %2.1f \x03BCm, \x0394SH = %2.2f dB',rads(:)*1e6, (Y(end,:)-Y(1,:))'),'Location','best');
+    xlabel('Overpressure (kPa)'); ylabel('Amplitude (dB)');
+    if pulse_negative==1
+        title({'Second-Harmonic Amplitude vs. Ambient Overpressure',...
+            ['Model = ', bubble_model],...
+            ['Pulse Magnitude = -',num2str(Pac/1e3),' kPa, ', 'Pulse Frequency = ',num2str(Frq/1e6),' MHz']});
+    else
+        title({'Second-Harmonic Amplitude vs. Ambient Overpressure',...
+            ['Model = ', bubble_model],...
+            ['Pulse Magnitude = ',num2str(Pac/1e3),' kPa, ', 'Pulse Frequency = ',num2str(Frq/1e6),' MHz']});
+    end
+    
+    
 end
